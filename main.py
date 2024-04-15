@@ -21,16 +21,19 @@ async def get_exchange_rates(num_days):
     for i in range(num_days):
         date = (today - timedelta(days=i)).strftime('%d.%m.%Y')
         data = await fetch_exchange_rates(date)
-        exchange_rates.append({date: {
-            'EUR': {
-                'sale': data['exchangeRate'][0]['saleRate'],
-                'purchase': data['exchangeRate'][0]['purchaseRate']
-            },
-            'USD': {
-                'sale': data['exchangeRate'][1]['saleRate'],
-                'purchase': data['exchangeRate'][1]['purchaseRate']
-            }
-        }})
+        exchange_rate = {date: {}}
+        if 'exchangeRate' in data:
+            for rate in data['exchangeRate']:
+                currency = rate.get('currency')
+                if currency in ['EUR', 'USD']:
+                    sale_rate = rate.get('saleRate')
+                    purchase_rate = rate.get('purchaseRate')
+                    if sale_rate is not None and purchase_rate is not None:
+                        exchange_rate[date][currency] = {
+                            'sale': sale_rate,
+                            'purchase': purchase_rate
+                        }
+        exchange_rates.append(exchange_rate)
     return exchange_rates
 
 async def main():
